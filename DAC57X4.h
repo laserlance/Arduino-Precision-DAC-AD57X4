@@ -1,5 +1,5 @@
-/* Version: 1.0.3
- * Copyright (c) 2013 by Laser-Lance Fordham <Lance.Fordham@gmail.com>
+/* Version: 2.0.0b
+ * Copyright (c) 2019 by Laser-Lance Fordham <Lance.Fordham@gmail.com>
  * DAC57X4.h - Library for the Analog Devices Inc. AD5724/AD5734/AD5754 Quad precision [12/14/16-bit] Digital to Analog Converters.
  *
  * This file is free software; you can redistribute it and/or modify
@@ -24,14 +24,14 @@ class DAC57X4{
 
 		public:
 
-			DAC57X4(int DACQTY, int dacvolts, int ss_pin);
-			void SetDAC(float DACVoltage, int DACNumber);
-			void LoadDACs();
-			void ClearDACs();
-			void ConfigDACs(int DACQTY);
-			void PowerDACs(int DACQTY);
-			void ReadDACsRegister(int DACRegister, int DACNumber, byte raw[]);
-			void SendData(long data);
+			DAC57X4(int DACQTY, int dacvolts, int ss_pin, int ChipNumber);
+			void SetDAC(float DACVoltage, int DACNumber, int ChipNumber);
+			void LoadDACs(int ChipNumber);
+			void ClearDACs(int ChipNumber);
+			void ConfigDACs(int DACQTY, int ChipNumber);
+			void PowerDACs(int DACQTY, int ChipNumber);
+			void ReadDACsRegister(int DACRegister, int DACNumber, byte raw[], int ChipNumber);
+			void SendData(long data, int ChipNumber);
 			int voltage;
 			int sspin;
 

@@ -1,5 +1,5 @@
-/* Version: 1.0.3
- * Copyright (c) 2013 by Laser-Lance Fordham <Lance.Fordham@gmail.com>
+/* Version: 2.0.0b
+ * Copyright (c) 2019 by Laser-Lance Fordham <Lance.Fordham@gmail.com>
  * DAC57X4.cpp - Library for the Analog Devices Inc. AD5724/AD5734/AD5754 Quad precision [12/14/16-bit] Digital to Analog Converters.
  *
  * This file is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 #include "DAC57X4.h"
 
 
-DAC57X4::DAC57X4(int DACQTY, int dacvolts, int ss_pin){
+DAC57X4::DAC57X4(int DACQTY, int dacvolts, int ss_pin, int ChipNumber=0){
 
 	// added by Bernd Rilling 12/2013
 
@@ -36,11 +36,11 @@ DAC57X4::DAC57X4(int DACQTY, int dacvolts, int ss_pin){
 	SPI.setClockDivider(SPI_CLOCK_DIV2);
 	voltage = dacvolts;
 
-	DAC57X4::ConfigDACs(DACQTY); //Must configure before turning the DACs on
-	DAC57X4::PowerDACs(DACQTY); //Power up the number of requested DACs
+	DAC57X4::ConfigDACs(DACQTY, ChipNumber); //Must configure before turning the DACs on
+	DAC57X4::PowerDACs(DACQTY, ChipNumber); //Power up the number of requested DACs
 
 }
-void DAC57X4::ConfigDACs(int DACQTY){ //CHECKED OK
+void DAC57X4::ConfigDACs(int DACQTY, int ChipNumber=0){ //CHECKED OK
 
 	/*
 
@@ -60,7 +60,8 @@ void DAC57X4::ConfigDACs(int DACQTY){ //CHECKED OK
 
 	*/
 	unsigned long config = 0x190000 | 0x1 | 0x4; //config = CTRL address | SDO Disable | Clamp Enable
-	DAC57X4::SendData(config);
+
+	DAC57X4::SendData(config, ChipNumber);
 
 	unsigned long output;
 
@@ -119,7 +120,7 @@ void DAC57X4::ConfigDACs(int DACQTY){ //CHECKED OK
 				break;
 			}
 
-			DAC57X4::SendData(output);
+			DAC57X4::SendData(output, ChipNumber);
 
 		case 3:
 
@@ -176,7 +177,7 @@ void DAC57X4::ConfigDACs(int DACQTY){ //CHECKED OK
 				break;
 			}
 
-			DAC57X4::SendData(output);
+			DAC57X4::SendData(output, ChipNumber);
 
 		case 2:
 
@@ -231,7 +232,7 @@ void DAC57X4::ConfigDACs(int DACQTY){ //CHECKED OK
 				break;
 			}
 
-			DAC57X4::SendData(output);
+			DAC57X4::SendData(output, ChipNumber);
 
 		case 1:
 
@@ -287,43 +288,43 @@ void DAC57X4::ConfigDACs(int DACQTY){ //CHECKED OK
 				break;
 			}
 
-			DAC57X4::SendData(output);
+			DAC57X4::SendData(output, ChipNumber);
 
 		break;
 
 	}
 
 }
-void DAC57X4::PowerDACs(int DACQTY){ //CHECKED OK
+void DAC57X4::PowerDACs(int DACQTY, int ChipNumber=0){ //CHECKED OK
 
 	switch(DACQTY){
 
 		case 1:
 
-			DAC57X4::SendData(0x100001); //Send B000100000000000000000001 to initialize only the first DAC
+			DAC57X4::SendData(0x100001, ChipNumber); //Send B000100000000000000000001 to initialize only the first DAC
 
 		break;
 
 		case 2:
 
-			DAC57X4::SendData(0x100003); //Send B000100000000000000000011 to initialize 2 DACs
+			DAC57X4::SendData(0x100003, ChipNumber); //Send B000100000000000000000011 to initialize 2 DACs
 
 		break;
 
 		case 3:
 
-			DAC57X4::SendData(0x100007); //Send B000100000000000000000111 to initialize 3 DACs
+			DAC57X4::SendData(0x100007, ChipNumber); //Send B000100000000000000000111 to initialize 3 DACs
 
 		break;
 
 		case 4:
 
-			DAC57X4::SendData(0x10000F); //Send B000100000000000000001111 to initialize  DACs
+			DAC57X4::SendData(0x10000F, ChipNumber); //Send B000100000000000000001111 to initialize  DACs
 
 		break;
 	}
 }
-void DAC57X4::SetDAC(float DACVoltage, int DACNumber){ //CHECKED OK
+void DAC57X4::SetDAC(float DACVoltage, int DACNumber, int ChipNumber=0){ //CHECKED OK
 
 	unsigned long DACAddress;
 	unsigned long data; //data is the voltage requested from the user application
@@ -427,27 +428,27 @@ void DAC57X4::SetDAC(float DACVoltage, int DACNumber){ //CHECKED OK
 		break;
 	}
 
-	DAC57X4::SendData(data);
+	DAC57X4::SendData(data,ChipNumber);
 
-	DAC57X4::LoadDACs();
+	DAC57X4::LoadDACs(ChipNumber);
 
 }
-void DAC57X4::LoadDACs(){ //CHECKED OK
+void DAC57X4::LoadDACs(int ChipNumber=0){ //CHECKED OK
 
 	unsigned long data = 0x1D0000;
 
-	DAC57X4::SendData(data);
+	DAC57X4::SendData(data,ChipNumber);
 }
-void DAC57X4::ClearDACs(){ //CHECKED OK
+void DAC57X4::ClearDACs(int ChipNumber=0){ //CHECKED OK
 
 	unsigned long data = 0x1C0000;
 
-	DAC57X4::SendData(data);
+	DAC57X4::SendData(data,ChipNumber);
 
 }
 
 // added by Bernd Rilling 12/2013
-void DAC57X4::ReadDACsRegister(int DACRegister, int DACNumber, byte raw[]){
+void DAC57X4::ReadDACsRegister(int DACRegister, int DACNumber, byte raw[], int ChipNumber=0){
 
 	unsigned long DACAddress;
 	unsigned long data;
@@ -523,34 +524,44 @@ void DAC57X4::ReadDACsRegister(int DACRegister, int DACNumber, byte raw[]){
 	}
 	//Send read command for the selected register and DACNumber
 
-	DAC57X4::SendData(data);
+	DAC57X4::SendData(data, ChipNumber);
 
-	digitalWrite(sspin, LOW);
-
-	//Send B0001 8000 0000 0000 0000 0000 = NOP
+	//Send B0001 1000 0000 0000 0000 0000 = NOP
 	//Read 3 bytes
 
-	for (int i=2; i>= 0; i--){
+	data = 0x180000;
 
-			raw[i] = SPI.transfer(0x180000);
-
-	}
-
-	digitalWrite(sspin, HIGH);
+	DAC57X4::SendData(data, ChipNumber);
 
 }
 // end added...
 
-void DAC57X4::SendData(long data){ //CHECKED OK
+void DAC57X4::SendData(long data, int ChipNumber=0){
 
 	digitalWrite(sspin,LOW);
 
-	unsigned char *p = (unsigned char*)&data;
+	unsigned char *p = (unsigned char*) &data;
 
-	for (int i=2; i>= 0; i--){ //MSB first
+	for (int i = 2; i >= 0; i--){ //MSB first
 
 		SPI.transfer (p[i]);
 
+	}
+
+	data = 0x180000;
+
+	p = (unsigned char*) &data;
+
+	if(ChipNumber > 0){
+
+		for (int j = 0; j = ChipNumber; j++){
+
+			for (int k=2; k>= 0; k--){
+
+				SPI.transfer(p[k]);
+
+			}
+		}
 	}
 
 	digitalWrite(sspin,HIGH);
